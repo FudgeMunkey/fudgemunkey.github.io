@@ -314,6 +314,10 @@ Adding this behaviour to the best move calculation resulted in the best bot I wa
 
 ![alt text](/assets/images/2026-09-27-kitg/benchmark-best.png)
 
+Unfortunately I could not get more replays of the bots playing because the replay system was server side and it was shut down after the CTF ended. Please enjoy my only recording of `fudge_09_oracle_circuit_edge_fixed.py`.
+
+![alt text](/assets/images/2026-09-27-kitg/gameplay-fudge-09.gif)
+
 Although I was able to add the edge scoring to the best move calculations, I ran out of time to incorporate this into the tree search. This meant that if the best move was invalid (due to getting stuck) the bot often chose to move away from the centre and into the danger zone because that's where the most possible moves were. I believe I got close, but I just didn't have the confidence to submit these bots to the server before time ran out because I definitely cooked something in their implementation.
 
 ![alt text](/assets/images/2026-09-27-kitg/benchmark-oracle-edge.png)
@@ -323,4 +327,3 @@ Although I was able to add the edge scoring to the best move calculations, I ran
 Despite spending almost all of my time this year on the King of the Grid challenge I am extremely proud of finishing the challenge in first place. A huge shout out to @Isaac and @Eric who helped me win the challenge and to 2g3 and Emu Exploit for putting up such a close fight. Thank you to Geoscape Australia for sending me out this year. Lastly, thank you to joseph for creating the challenge and Skateboarding Dog for hosting another great year of BSides Canberra CTFs.
 
 ![alt text](/assets/images/2026-09-27-kitg/scoreboard.png)
-
