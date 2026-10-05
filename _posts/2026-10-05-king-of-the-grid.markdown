@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "How we became Kings of the Grid at BSides Canberra 2026"
-date:   2026-09-27 18:00:00 +1000
+date:   2026-10-05 17:19:00 +1100
 categories: ctf
 ---
 
