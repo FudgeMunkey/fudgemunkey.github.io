@@ -9,13 +9,13 @@ categories: ctf
 
 BSides Canberra is my favourite conference to attend each year because competing in the Capture The Flag (CTF) competitions is always such a highlight. This year was no different as we represented the **h4-x_X_x-0rs: Sniper Elite Squad** and placed 25th with 1781 points out of 210 teams.
 
-An exciting spin on this years CTF was the introduction of King of the Hill (KITH) challenges where the best solution achieves the most points. This was an exciting change because it meant that the difficulty of the challenge wasn't decided by Skateboarding Dog (the creators), but instead the solutions of all the other teams. If you really enjoyed a KITH challenge it meant that you could spend the entire competition improving your solution in the hopes of achieving that Top Dog spot. Naturally, this is exaclty what ended up happening...
+An exciting spin on this year's CTF was the introduction of King of the Hill (KOTH) challenges where the best solution achieves the most points. This was an exciting change because it meant that the difficulty of the challenge wasn't decided by Skateboarding Dog (the creators), but instead the solutions of all the other teams. If you really enjoyed a KOTH challenge it meant that you could spend the entire competition improving your solution in the hopes of achieving that Top Dog spot. Naturally, this is exactly what ended up happening...
 
 ## King of the Grid
 
-King of the Grid (KITG) was one of the new KITH style challenges this year and it totally absorbed all of my attention by combining two of my favourite things - coding and video games. For KITG you had to create a script to play Tron against 9 other bots every two minutes on a central server and gain the most points by outlasting or eliminating them. The game screen looked like this.
+King of the Grid (KOTG) was one of the new KOTH style challenges this year and it totally absorbed all my attention by combining two of my favourite things - coding and video games. For KOTG you had to create a script to play Tron against 9 other bots every two minutes on a central server and gain the most points by outlasting or eliminating them. The game screen looked like this.
 
-![Screenshot of King of the Grid challenge game](/assets/images/2026-09-27-kitg/kitg-screenshot.png)
+![Screenshot of King of the Grid challenge game](/assets/images/2026-09-27-KOTG/screenshot.png)
 
 Creating a bot was simple. At every game tick, you needed to return a dictionary with a move (up, down, left, right) and an optional boost flag (true, false). To be able to make your choice, you were provided with a `decide` function and the game's current state. Below is the `example_bot.py` that was provided to teams.
 
@@ -37,15 +37,15 @@ def decide(state: dict) -> dict:
     return {"move": facing}
 ```
 
-The example bot was simple but it worked quite well. It was impossible for it to run into its own trail and unless it spawned right next to another bot, it was unlikely to collide with another bot's trail. Its biggest weakness was that it could not move towards the centre of the grid as the safe zone shrunk.
+The example bot was simple, but it worked quite well. It was impossible for it to run into its own trail and unless it spawned right next to another bot, it was unlikely to collide with another bot's trail. Its biggest weakness was that it could not move towards the centre of the grid as the safe zone shrunk.
 
-![Bots are allowed to move in the safe zone but it shrinks by one square every 5 game ticks. Players in the danger zone are eliminated.](/assets/images/2026-09-27-kitg/kitg-zones.png)
+![Bots are allowed to move in the safe zone but it shrinks by one square every 5 game ticks. Players in the danger zone are eliminated.](/assets/images/2026-09-27-KOTG/zones.png)
 
 ## Controlling the Centre
 
 After watching some of the bots compete on the server it was clear that being the last bot alive gained you a lot of points. You would get 1000 points for being the last player alive as a win bonus and you would get 0 - 800 points depending on how long you were alive. You would also get a lot of points for eliminating other players but trying to survive seemed like the most reliable strategy.
 
-As the safe zone shrinks every 5 ticks I thought that getting to the centre of the grid and preventing other bots from staying in the safe zone was the easiest way to survive until the end of the game. In chess, this strategy is known as "controlling the centre" and I thought I could apply the same idea here. To achieve this, I set a target of `x: 16, y: 16` (on a 32x32 grid) and moved the bot directly to the centre.
+As the safe zone shrinks every five ticks, I thought that getting to the centre of the grid and preventing other bots from staying in the safe zone was the easiest way to survive until the end of the game. In chess, this strategy is known as "controlling the centre" and I thought I could apply the same idea here. To achieve this, I set a target of `x: 16, y: 16` (on a 32x32 grid) and moved the bot directly to the centre.
 
 ```python
 def move_to_centre(state: dict):
@@ -71,7 +71,7 @@ def move_to_centre(state: dict):
     return move
 ```
 
-This script got the bot to the centre of the grid quickly but it did a poor job at "controlling the centre". To increase it's footprint, I followed the example bot's example and circled around the centre of the map. After reaching the centre of the map, the bot swapped to "centre mode" which looked like this.
+This script got the bot to the centre of the grid quickly, but it did a poor job at "controlling the centre". To increase its footprint, I followed the example bot's example and circled around the centre of the map. After reaching the centre of the map, the bot swapped to "centre mode" which looked like this.
 
 ```python
 def move_around_centre(state: dict):
@@ -98,25 +98,25 @@ def move_around_centre(state: dict):
 
 This bot performed very well and managed to top the leaderboard for the first few hours of the competition. The path of the centre bot for a game looked like this.
 
-![The bot moves from it's spawn point to the centre of the map. Once it is near the centre of the map, it runs a circuit around the centre to increase it's control of the centre of the grid.](/assets/images/2026-09-27-kitg/kitg-control-the-centre.png)
+![The bot moves from its spawn point to the centre of the map. Once it is near the centre of the map, it runs a circuit around the centre to increase its control of the centre of the grid.](/assets/images/2026-09-27-KOTG/control-the-centre.png)
 
 ## Benchmarking
 
-A big problem I faced when trying to create a new bot was knowing if it was actually better than the previous bot I made and knowing if it was better than the other team's bots. You could submit your bot to the server to see how it performed but games only played every 2 minutes. Although you see how it performs against other teams, this is an extremely long feedback loop. After 20 minutes of waiting you may have 10 games to review and those games may not be representative of that bot's strengths and weaknesses.
+A big problem I faced when trying to create a new bot was knowing if it was actually better than the previous bot I made and knowing if it was better than the other team's bots. You could submit your bot to the server to see how it performed but games only played every 2 minutes. Although you see how it performs against other teams, this is an extremely long feedback loop. After 20 minutes of waiting, you may have 10 games to review and those games may not be representative of that bot's strengths and weaknesses.
 
-Skateboarding Dog did provide you with the game's engine code and the scripts to run the game locally which greatly decreased the feedback time. I often ran a command like this to see if my current bot was an improvement over the last bot `clear && python play.py -n 2 --replay replay.json bot_04.py bot_05.py` which worked relatively well. I did worry that I was optimising my bots performance against itself rather than against all possible strategies so I would run something like this before submission `clear && python play.py -n 2 --replay replay.json bot_01.py bot_02.py bot_03.py bot_04.py bot_05.py` but tracking a bot's performance over multiple games became very difficult.
+Skateboarding Dog did provide you with the game's engine code and the scripts to run the game locally which greatly decreased the feedback time. I often ran a command like this to see if my current bot was an improvement over the last bot `clear && python play.py -n 2 --replay replay.json bot_04.py bot_05.py` which worked relatively well. I did worry that I was optimising my bot's performance against itself rather than against all possible strategies so I would run something like this before submission `clear && python play.py -n 5 --replay replay.json bot_01.py bot_02.py bot_03.py bot_04.py bot_05.py` but tracking a bot's performance over multiple games became very difficult.
 
 To address this issue, @Isaac created a benchmarking script so we could easily compare the performance of all our bots in a local competition. The script would play thousands of games where each game had a random sample of 10 bots on a new seed. The results would be summarised in a table for us to review. @Isaac and @Eric both created many more bots with a variety of different strategies to reduce the risk of hyper optimising a bot's performance against its last version. The output for that tool looked like this.
 
-![alt text](/assets/images/2026-09-27-kitg/benchmark-start.png)
+![alt text](/assets/images/2026-09-27-KOTG/benchmark-start.png)
 
-Obviously making tools like this during a CTF take up a lot of time that could have been spent making a better solution for our bot, but tools like this help you make better solutions. Decreasing the feedback time for a new iteration of the bot and having the confidence to say "yes this bot is now definitely better than our previous ones" before submitting it to the server is just so valuable. This tool and the other bots didn't actually exist until the Friday night after Fudge #5 was made, but I will use it from now on to help quantify how much the bots were improving. For the centre bots (fudge_01 and fudge_04) mentioned previously, these were the benchmarking results. At their time, they were first on the server but compared to the bots we had when @Isaac created the tool and @Eric created the other bots they performed poorly.
+Obviously making tools like this during a CTF take up a lot of time that could have been spent making a better solution for our bot, but tools like this help you make better solutions. Decreasing the feedback time for a new iteration of the bot and having the confidence to say "yes this bot is now definitely better than our previous ones" before submitting it to the server is just so valuable. This tool and the other bots didn't exist until the Friday night after `fudge_05` was made, but I will use it from now on to help quantify how much the bots were improving. For the centre bots (`fudge_01` and `fudge_04`) mentioned previously, these were the benchmarking results. At the time, they were first on the server but compared to the bots we had when @Isaac created the tool and @Eric created the other bots they performed poorly.
 
-![alt text](/assets/images/2026-09-27-kitg/benchmark-centre.png)
+![alt text](/assets/images/2026-09-27-KOTG/benchmark-centre.png)
 
 ## Avoiding Immediate Collisions
 
-The centre bot is able to move towards and control the centre of the grid but it fails to avoid immediate collisions with other bot's trails. This causes the bot to eliminate itself very early into the game and score very few points. The centre bot does not consider the game state and only calculates the best move based on the resulting distance to its goal - reaching the centre of the grid. In the decide function we are given access to the `state` object which is the entire game state at that game tick. Now when calculating the best move we can consider all of the trail coordinates from the `players.trail` object in the game state.
+The centre bot is able to move towards and control the centre of the grid but it fails to avoid immediate collisions with other bot's trails. This causes the bot to eliminate itself very early into the game and score very few points. The centre bot does not consider the game state and only calculates the best move based on the resulting distance to its goal - reaching the centre of the grid. In the `decide()` function we are given access to the `state` object which is the entire game state at that game tick. Now when calculating the best move we can consider all of the trail coordinates from the `players.trail` object in the game state.
 
 ```json
 {
@@ -178,11 +178,11 @@ The centre bot is able to move towards and control the centre of the grid but it
 
 When scoring the best move for the bot I considered collisions with trails to be worth `1_000_000` as they are the worst thing a bot can do (they immediately get eliminated). Other moves still keep the bot alive and work towards their goal, so they are worth the distance to the centre of the grid. I sorted each of the moves based on the score and chose the lowest scoring move. An example of the bot's choices may look like `{"right": 11, "up": 12, "down": 12, "left": 1000000}` which means it would choose to move `right`. If multiple moves are tied for the lowest score, then a random move is chosen. Adding this logic to the previous centre bots to avoid immediate collisions improved their performance drastically.
 
-![alt text](/assets/images/2026-09-27-kitg/benchmark-centre-collision.png)
+![alt text](/assets/images/2026-09-27-KOTG/benchmark-centre-collision.png)
 
 Now that there are so many bots in our local competition moving towards the same goal (centre of the grid) a common issue appeared. If two bots wanted to move to the same location they would collide with each other and eliminate each other from the game. These moves were valid because they were unnocupied spaces without bots or trails. This was a big problem for our local competition but not a big problem on the actual server. To fix this issue I considered coordinates that were `adjacent` to other players to be worth `500_000` as there was a chance to collide with the other players but it did not guarantee an elinimation. An example of a bot's choices may now look like `{"right": 11, "up": 12, "down": 500000, "left": 1000000}` which means the bot would choose to move `right`. Adding this logic to the previous centre circuit bot greatly improved its performance again.
 
-![alt text](/assets/images/2026-09-27-kitg/benchmark-adjacent.png)
+![alt text](/assets/images/2026-09-27-KOTG/benchmark-adjacent.png)
 
 The scoring function for each move looked like this.
 
@@ -292,9 +292,9 @@ def calculate_branch_score(node):
 
 Applying this new tree based searching algorithm to a bot that tried to stay as close as it could to the centre and a bot that did a circuit around the centre improved their performance, but not by as much as you might expect.
 
-![alt text](/assets/images/2026-09-27-kitg/benchmark-oracle.png)
+![alt text](/assets/images/2026-09-27-KOTG/benchmark-oracle.png)
 
-The reason for their minior jump in win rate but lower average score is because these oracle bots would often move out of the safe zone because they thought moves towards the edge of the safe zone had more possible moves. To help nudge the best move calculation away from the edge of the safe zone I introduced a new scoring metric that capture the "distance to the edge of the safe zone". A move that moved the bot closer to the edge of the safe zone was punished and looked like this.
+The reason for their minor jump in win rate but lower average score is because these oracle bots would often move out of the safe zone because they thought moves towards the edge of the safe zone had more possible moves. To help nudge the best move calculation away from the edge of the safe zone I introduced a new scoring metric that capture the "distance to the edge of the safe zone". A move that moved the bot closer to the edge of the safe zone was punished and looked like this.
 
 ```python
 if is_collision:
@@ -312,18 +312,18 @@ else:
 
 Adding this behaviour to the best move calculation resulted in the best bot I was able to make during the CTF and it was a huge improvement over all of our other bots.
 
-![alt text](/assets/images/2026-09-27-kitg/benchmark-best.png)
+![alt text](/assets/images/2026-09-27-KOTG/benchmark-best.png)
 
 Unfortunately I could not get more replays of the bots playing because the replay system was server side and it was shut down after the CTF ended. Please enjoy my only recording of `fudge_09_oracle_circuit_edge_fixed.py`.
 
-![alt text](/assets/images/2026-09-27-kitg/gameplay-fudge-09.gif)
+![alt text](/assets/images/2026-09-27-KOTG/gameplay-fudge-09.gif)
 
 Although I was able to add the edge scoring to the best move calculations, I ran out of time to incorporate this into the tree search. This meant that if the best move was invalid (due to getting stuck) the bot often chose to move away from the centre and into the danger zone because that's where the most possible moves were. I believe I got close, but I just didn't have the confidence to submit these bots to the server before time ran out because I definitely cooked something in their implementation.
 
-![alt text](/assets/images/2026-09-27-kitg/benchmark-oracle-edge.png)
+![alt text](/assets/images/2026-09-27-KOTG/benchmark-oracle-edge.png)
 
 ## Thank You
 
 Despite spending almost all of my time this year on the King of the Grid challenge I am extremely proud of finishing the challenge in first place. A huge shout out to @Isaac and @Eric who helped me win the challenge and to 2g3 and Emu Exploit for putting up such a close fight. Thank you to Geoscape Australia for sending me out this year. Lastly, thank you to joseph for creating the challenge and Skateboarding Dog for hosting another great year of BSides Canberra CTFs.
 
-![alt text](/assets/images/2026-09-27-kitg/scoreboard.png)
+![alt text](/assets/images/2026-09-27-KOTG/scoreboard.png)
