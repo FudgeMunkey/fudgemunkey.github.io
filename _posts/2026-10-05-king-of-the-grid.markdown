@@ -15,7 +15,7 @@ An exciting spin on this year's CTF was the introduction of King of the Hill (KO
 
 King of the Grid (KOTG) was one of the new KOTH style challenges this year and it totally absorbed all my attention by combining two of my favourite things - coding and video games. To win the KOTG challenge, you had to create the best bot for playing an inspired version of the [Tron](https://en.wikipedia.org/wiki/Tron) game. In the original Tron game, players would ride a "light cycle" in a flat arena with the goal of eliminating their opponents. Their light cycles would leave a permenant wall behind them which their opponents could crash into. The KOTG challenge was similar, but there were a few key differences. The humans on light cycles were now dogs on skateboards, the walls left behind were up to ~12 units long and temporary, the dogs could boost to move more quickly, and the safe arena in the arena would shrink over time forcing players to the centre. The game screen looked like this.
 
-![Screenshot of King of the Grid challenge game](/assets/images/2026-10-05-KOTG/screenshot.png)
+![Screenshot of King of the Grid challenge game](/assets/images/2026-10-05-kotg/screenshot.png)
 
 Creating a bot was simple. At every game tick, you needed to return a dictionary with a move (up, down, left, right) and an optional boost flag (true, false). To be able to make your choice, you were provided with a `decide()` function and the game's current state. Below is the `example_bot.py` that was provided to teams.
 
@@ -39,7 +39,7 @@ def decide(state: dict) -> dict:
 
 The example bot was simple, but it worked quite well. It was impossible for it to run into its own trail and unless it spawned right next to another bot, it was unlikely to collide with another bot's trail. The example bot's biggest weakness was that it would eventually be eliminated by the danger zone due to the safe zone shrinking over time.
 
-![Bots are allowed to move in the safe zone but it shrinks by one square every 5 game ticks. Players in the danger zone are eliminated.](/assets/images/2026-10-05-KOTG/zones.png)
+![Bots are allowed to move in the safe zone but it shrinks by one square every 5 game ticks. Players in the danger zone are eliminated.](/assets/images/2026-10-05-kotg/zones.png)
 
 ## Controlling the Centre
 
@@ -98,7 +98,7 @@ def move_around_centre(state: dict):
 
 `fudge_04` performed very well and managed to top the leaderboard for the first few hours of the competition. The path of `fudge_04` during a game looked like this.
 
-![Fudge 04 moves from its spawn point to the centre of the map. Once it is near the centre of the map, it runs a circuit around the centre to increase its control of the centre of the grid.](/assets/images/2026-10-05-KOTG/control-the-centre.png)
+![Fudge 04 moves from its spawn point to the centre of the map. Once it is near the centre of the map, it runs a circuit around the centre to increase its control of the centre of the grid.](/assets/images/2026-10-05-kotg/control-the-centre.png)
 
 ## Benchmarking
 
@@ -108,11 +108,11 @@ Skateboarding Dog did provide you with the game's engine code and the scripts to
 
 To address this issue, [@Isaac][isaac-github] created a benchmarking script so we could easily compare the performance of all our bots in a local competition. The script would play thousands of games where each game had a random sample of 10 bots on a new seed. The results would be summarised in a table for us to review. [@Isaac][isaac-github] and [@Eric][eric-github] both created many more bots with a variety of different strategies to reduce the risk of hyper optimising a bot's performance against its last version. The output for that tool looked like this.
 
-![Benchmarking results on a variety of bots from the Friday night.](/assets/images/2026-10-05-KOTG/benchmark-start.png)
+![Benchmarking results on a variety of bots from the Friday night.](/assets/images/2026-10-05-kotg/benchmark-start.png)
 
 Obviously making tools like this during a CTF take up a lot of time that could have been spent making a better solution for our bot, but tools like this help you make better solutions. Decreasing the feedback time for a new iteration of the bot and having the confidence to say "yes this bot is now definitely better than our previous ones" before submitting it to the server is just so valuable. This tool and the other bots didn't exist until the Friday night after `fudge_05` was made, but I will use it from now on to help quantify how much the bots were improving. These are the benchmarking results for the centre bots `fudge_01` and `fudge_04`. At the time, they were first on the server but compared to the bots we had when the benchmarking tool was created, they performed poorly.
 
-![Benchmarking results for Fudge 01 and Fudge 04. Fudge 01 (straight to the centre) places eighth with an average win rate of 9.3% and an average score of 851. Fudge 04 (square around centre) places ninth with an average win rate of 5.2% and an average score of 714.](/assets/images/2026-10-05-KOTG/benchmark-centre.png)
+![Benchmarking results for Fudge 01 and Fudge 04. Fudge 01 (straight to the centre) places eighth with an average win rate of 9.3% and an average score of 851. Fudge 04 (square around centre) places ninth with an average win rate of 5.2% and an average score of 714.](/assets/images/2026-10-05-kotg/benchmark-centre.png)
 
 ## Avoiding Immediate Collisions
 
@@ -178,11 +178,11 @@ Obviously making tools like this during a CTF take up a lot of time that could h
 
 When scoring the best move I considered collisions with trails to be worth `1_000_000` points as they are the worst thing a bot can do - they get eliminated. All other moves kept the bot alive and were scored based on their distance to their goals. I sorted each of the moves based on the score and chose the lowest scoring move. An example of the bot's choices may look like `{"right": 11, "up": 12, "down": 12, "left": 1000000}` which means it would choose to move `right`. If multiple moves are tied for the lowest score, then a random tied move is chosen. Adding this logic to `fudge_01_collision` and `fudge_04_collision` greatly increased their performance.
 
-![Benchmarking results for Fudge 01 with collision avoidance and Fudge 04 with collision avoidance. Fudge 01 Collision places fourth with an average win rate of 19.1% and an average score of 1207. Fudge 04 Collision bot places first with an average win rate of 26.8% and an average score of 1403.](/assets/images/2026-10-05-KOTG/benchmark-centre-collision.png)
+![Benchmarking results for Fudge 01 with collision avoidance and Fudge 04 with collision avoidance. Fudge 01 Collision places fourth with an average win rate of 19.1% and an average score of 1207. Fudge 04 Collision bot places first with an average win rate of 26.8% and an average score of 1403.](/assets/images/2026-10-05-kotg/benchmark-centre-collision.png)
 
 At this point there were now four bots in our local competition moving towards the same goal (centre of the grid) which surfaced a common issue. If two bots wanted to move to the same location in the same game tick, they would collide with and eliminate each other. This was a big problem for our local competition but not such a big problem on the actual server. To fix this issue I considered coordinates that were `adjacent` to other players to be worth `500_000` points as there was a chance to collide with the other players but it did not guarantee an elimination. An example of a bot's choices looked like `{"right": 11, "up": 12, "down": 500000, "left": 1000000}` which means the bot would choose to move `right`. Adding this logic to `fudge_05` greatly improved its performance.
 
-![Benchmarking results for Fudge 05 which avoids immediate and adjacent collisions. Fudge 05 places first with an average win rate of 38.2% and an average score of 1842.](/assets/images/2026-10-05-KOTG/benchmark-adjacent.png)
+![Benchmarking results for Fudge 05 which avoids immediate and adjacent collisions. Fudge 05 places first with an average win rate of 38.2% and an average score of 1842.](/assets/images/2026-10-05-kotg/benchmark-adjacent.png)
 
 The scoring function for each move looked like this.
 
@@ -292,7 +292,7 @@ def calculate_branch_score(node):
 
 Applying this new tree based searching algorithm to `fudge_06` (centre) and `fudge_07` (centre circuit) improved their performance, but not by as much as you might expect.
 
-![Benchmarking results for Fudge 06 and Fudge 07 who look five moves ahead. Fudge 06 moves to the centre of the grid and places third with an average win rate of 23.4% and an average score of 1572. Fudge 07 makes a circuit around the centre of the grid and places second with an average win rate of 25.6% and an average score of 1626. Fudge 05 which makes a circuit around the centre and only looks one move ahead places first with a win rate of 23.1% and an average score of 1708.](/assets/images/2026-10-05-KOTG/benchmark-oracle.png)
+![Benchmarking results for Fudge 06 and Fudge 07 who look five moves ahead. Fudge 06 moves to the centre of the grid and places third with an average win rate of 23.4% and an average score of 1572. Fudge 07 makes a circuit around the centre of the grid and places second with an average win rate of 25.6% and an average score of 1626. Fudge 05 which makes a circuit around the centre and only looks one move ahead places first with a win rate of 23.1% and an average score of 1708.](/assets/images/2026-10-05-kotg/benchmark-oracle.png)
 
 The reason for their higher win rate but lower average score was because the oracle bots would move out of the safe zone and into the danger zone because they thought there were more possible moves. To nudge the best move calculation away from the edge of the safe zone I introduced a new scoring metric that capture the "distance to the edge of the safe zone". Moves towards the edge of the safe zone were punished and looked like this.
 
@@ -312,21 +312,21 @@ else:
 
 Adding this behaviour to `fudge_09` resulted in the best bot and final submission I made for the CTF. It was a huge improvement over all of our other bots.
 
-![Benchmarking results for Fudge 09. Fudge 09 places first with an average win rate of 37.0% and an average score of 1944.](/assets/images/2026-10-05-KOTG/benchmark-best.png)
+![Benchmarking results for Fudge 09. Fudge 09 places first with an average win rate of 37.0% and an average score of 1944.](/assets/images/2026-10-05-kotg/benchmark-best.png)
 
 Please enjoy my only recording of the `fudge_09` bot. Unfortunately I could not get more replays of the bots playing because the replay system was on the server only and it was shut down after the CTF ended.
 
-![Gif of Fudge 09 playing out a match and winning.](/assets/images/2026-10-05-KOTG/gameplay-fudge-09.gif)
+![Gif of Fudge 09 playing out a match and winning.](/assets/images/2026-10-05-kotg/gameplay-fudge-09.gif)
 
 Although I was able to add the edge scoring to the best move calculations, I ran out of time to incorporate this logic into the tree search properly. This meant that if the best move was invalid (due to getting stuck) the bot often chose to move away from the centre and into the danger zone because that's where the most possible moves were. I believe I got close with `fudge_11` and `fudge_12`, but when viewing replays and viewing the logs something was definitely wrong with their implementation. I just didn't have enough confidence to submit them to the server despite the remarkable benchmarking results. Here are those benchmarking results.
 
-![Benchmarking results for Fudge 11 and Fudge 12 which aimed to fix the branch search of the edge calculations. Fudge 09 places third with an average win rate of 22.8% and an average score of 1668. Fudge 11 places second with an average win rate of 31.7% and an average score of 1704. Fudge 12 places first with an average win rate of 34.4% and an average score of 1807.](/assets/images/2026-10-05-KOTG/benchmark-oracle-edge.png)
+![Benchmarking results for Fudge 11 and Fudge 12 which aimed to fix the branch search of the edge calculations. Fudge 09 places third with an average win rate of 22.8% and an average score of 1668. Fudge 11 places second with an average win rate of 31.7% and an average score of 1704. Fudge 12 places first with an average win rate of 34.4% and an average score of 1807.](/assets/images/2026-10-05-kotg/benchmark-oracle-edge.png)
 
 ## Thank You
 
 Despite spending almost all of my time this year on the King of the Grid challenge I am extremely proud of finishing the challenge in first place among 33 other teams. A huge shout out to [@Isaac][isaac-github] and [@Eric][eric-github] who helped me win the challenge and to `2g3` and `Emu Exploit` for putting up such a close fight. Thank you to Geoscape Australia for sending me out this year. Lastly, thank you to joseph for creating the challenge and Skateboarding Dog for hosting another great year of BSides Canberra CTFs. I can't wait for next year and I hope there will be another challenge like this!
 
-![An image of the scoreboard where our team placed first in the King of the Grid challenge with 1518 points. 2g3 placed second with 1474 points and Emu Exploit placed third with 1414 points.](/assets/images/2026-10-05-KOTG/scoreboard.png)
+![An image of the scoreboard where our team placed first in the King of the Grid challenge with 1518 points. 2g3 placed second with 1474 points and Emu Exploit placed third with 1414 points.](/assets/images/2026-10-05-kotg/scoreboard.png)
 
 [isaac-github]: https://github.com/IsaacPushButton
 [eric-github]: https://github.com/eb-h
